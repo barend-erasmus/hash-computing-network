@@ -1,5 +1,7 @@
 import * as uuid from 'uuid';
 import { MessageQueueClient } from 'wsmq';
+import { CommandBuilder } from './command-builder';
+import { Command } from './commands/command';
 import { ComputeCommand } from './commands/compute';
 import { ComputeResultCommand } from './commands/compute-result';
 import { JoinCommand } from './commands/join';
@@ -7,7 +9,9 @@ import { PingCommand } from './commands/ping';
 import { HashTaskRange } from './hash-task-range';
 import { MasterNode } from './master-node';
 
-export class Master {
+export class MasterNodeClient {
+
+    protected commandBuilder: CommandBuilder = null;
 
     protected id: string = null;
 
@@ -16,11 +20,21 @@ export class Master {
     protected messageQueueClient: MessageQueueClient = null;
 
     constructor() {
+        this.commandBuilder = new CommandBuilder();
+
         this.id = uuid.v4();
 
-        this.masterNode = new MasterNode(5000, 10000, this.onHashTaskSolved, this.sendHashRangeTask, 20000);
+        this.masterNode = new MasterNode(
+            5000,
+            10000,
+            (answer: string, result: string) => this.onHashTaskSolved(answer, result),
+            (hashTaskRange: HashTaskRange, workerProcess: string) => this.sendHashRangeTask(hashTaskRange, workerProcess),
+            20000,
+        );
 
-        this.messageQueueClient = new MessageQueueClient('ws://wsmq.openservices.co.za', this.onMessage,
+        this.messageQueueClient = new MessageQueueClient(
+            'ws://wsmq.openservices.co.za',
+            (channel: string, data: any, messageQueueClient: MessageQueueClient) => this.onMessage(channel, data, messageQueueClient),
             [
                 `hash-computing-network-master-${this.id}`,
             ]);
@@ -44,17 +58,16 @@ export class Master {
     }
 
     protected onMessage(channel: string, data: any, messageQueueClient: MessageQueueClient): void {
-        if (data.type === 'compute-result') {
-            const computeResultCommand: ComputeResultCommand = new ComputeResultCommand(
-                data.hashTaskAnswer,
-                new HashTaskRange(data.hashTaskRange.end, data.hashTaskRange.hash, data.hashTaskRange.start),
-            );
+        const command: Command = this.commandBuilder.build(data);
+
+        if (command instanceof ComputeResultCommand) {
+            const computeResultCommand: ComputeResultCommand = command as ComputeResultCommand;
 
             this.masterNode.addCompletedHashTaskRange(computeResultCommand.hashTaskAnswer, computeResultCommand.hashTaskRange);
         }
 
-        if (data.type === 'join') {
-            const joinCommand: JoinCommand = new JoinCommand(data.slaveId);
+        if (command instanceof JoinCommand) {
+            const joinCommand: JoinCommand = command as JoinCommand;
 
             const addWorkerProcessResult: boolean = this.masterNode.addWorkerProcess(joinCommand.slaveId);
         }
@@ -62,6 +75,6 @@ export class Master {
 
 }
 
-const master: Master = new Master();
+const masterNodeClient: MasterNodeClient = new MasterNodeClient();
 
-master.start();
+masterNodeClient.start();

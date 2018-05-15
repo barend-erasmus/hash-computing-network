@@ -17,7 +17,7 @@ export class SlaveNode {
         const endValue: BigNumber = BigNumber(hashTaskRange.end);
 
         while (value.lte(endValue)) {
-            const str: string = BigNumberHelper.toString(value, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'.split(''));
+            const str: string = BigNumberHelper.toString('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'.split(''), value);
 
             if (hashAlgorithm.calculate(str).toLowerCase() === hashTaskRange.hash.toLowerCase()) {
                 return str;

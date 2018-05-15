@@ -1,13 +1,16 @@
 import * as uuid from 'uuid';
 import { MessageQueueClient } from 'wsmq';
+import { CommandBuilder } from './command-builder';
+import { Command } from './commands/command';
 import { ComputeCommand } from './commands/compute';
 import { ComputeResultCommand } from './commands/compute-result';
 import { JoinCommand } from './commands/join';
 import { PingCommand } from './commands/ping';
-import { HashTaskRange } from './hash-task-range';
 import { SlaveNode } from './slave-node';
 
-export class Slave {
+export class SlaveNodeClient {
+
+    protected commandBuilder: CommandBuilder = null;
 
     protected id: string = null;
 
@@ -16,11 +19,15 @@ export class Slave {
     protected messageQueueClient: MessageQueueClient = null;
 
     constructor() {
+        this.commandBuilder = new CommandBuilder();
+
         this.id = uuid.v4();
 
         this.slaveNode = new SlaveNode();
 
-        this.messageQueueClient = new MessageQueueClient('ws://pangolin.message-queue.openservices.co.za', this.onMessage,
+        this.messageQueueClient = new MessageQueueClient(
+            'ws://wsmq.openservices.co.za',
+            (channel: string, data: any, messageQueueClient: MessageQueueClient) => this.onMessage(channel, data, messageQueueClient),
             [
                 `hash-computing-network`,
                 `hash-computing-network-slave-${this.id}`,
@@ -32,11 +39,10 @@ export class Slave {
     }
 
     protected onMessage(channel: string, data: any, messageQueueClient: MessageQueueClient): void {
-        if (data.type === 'compute') {
-            const computeCommand: ComputeCommand = new ComputeCommand(
-                new HashTaskRange(data.hashTaskRange.end, data.hashTaskRange.hash, data.hashTaskRange.start),
-                data.masterId,
-            );
+        const command: Command = this.commandBuilder.build(data);
+
+        if (command instanceof ComputeCommand) {
+            const computeCommand: ComputeCommand = command as ComputeCommand;
 
             const answer: string = this.slaveNode.computeHashTaskRange(computeCommand.hashTaskRange);
 
@@ -45,8 +51,8 @@ export class Slave {
             this.messageQueueClient.send(`hash-computing-network-master-${computeCommand.masterId}`, computeResultCommand);
         }
 
-        if (data.type === 'ping') {
-            const pingCommand: PingCommand = new PingCommand(data.masterId);
+        if (command instanceof PingCommand) {
+            const pingCommand: PingCommand = command as PingCommand;
 
             const joinCommand: JoinCommand = new JoinCommand(this.id);
 
@@ -55,6 +61,6 @@ export class Slave {
     }
 }
 
-const slave: Slave = new Slave();
+const slaveNodeClient: SlaveNodeClient = new SlaveNodeClient();
 
-slave.start();
+slaveNodeClient.start();
