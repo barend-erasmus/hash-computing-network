@@ -35,7 +35,7 @@ export class MasterNodeClient {
         );
 
         this.messageQueueClient = new MessageQueueClient(
-            'ws://wsmq.openservices.co.za',
+            'wss://wsmq.openservices.co.za',
             (channel: string, data: any, messageQueueClient: MessageQueueClient) => this.onMessage(channel, data, messageQueueClient),
             [
                 `hash-computing-network-master-${this.id}`,

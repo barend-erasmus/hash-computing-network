@@ -22965,7 +22965,7 @@ class SlaveNodeClient {
         this.commandBuilder = new command_builder_1.CommandBuilder();
         this.id = uuid.v4();
         this.slaveNode = new slave_node_1.SlaveNode();
-        this.messageQueueClient = new wsmq_1.MessageQueueClient('ws://wsmq.openservices.co.za', (channel, data, messageQueueClient) => this.onMessage(channel, data, messageQueueClient), [
+        this.messageQueueClient = new wsmq_1.MessageQueueClient('wss://wsmq.openservices.co.za', (channel, data, messageQueueClient) => this.onMessage(channel, data, messageQueueClient), [
             `hash-computing-network`,
             `hash-computing-network-slave-${this.id}`,
         ]);
