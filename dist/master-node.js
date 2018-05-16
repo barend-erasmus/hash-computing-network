@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const hash_task_1 = require("./hash-task");
 const hash_task_range_1 = require("./hash-task-range");
 const range_1 = require("./range");
+const rate_counter_1 = require("./rate-counter");
 const worker_process_1 = require("./worker-process");
 class MasterNode {
     constructor(rangeExpiry, rangeSize, onHashTaskSolved, sendHashTaskRange, workerProcessExpiry) {
@@ -11,15 +12,19 @@ class MasterNode {
         this.onHashTaskSolved = onHashTaskSolved;
         this.sendHashTaskRange = sendHashTaskRange;
         this.workerProcessExpiry = workerProcessExpiry;
-        this.workerProcesses = null;
         this.hashTasks = null;
-        this.workerProcesses = [];
+        this.rateCounter = null;
+        this.workerProcesses = null;
         this.hashTasks = [];
+        this.rateCounter = new rate_counter_1.RateCounter(10);
+        this.workerProcesses = [];
     }
     addCompletedHashTaskRange(answer, hashTaskRange) {
         for (const hashTask of this.hashTasks) {
             if (hashTask.hash.toLowerCase() === hashTaskRange.hash.toLowerCase()) {
                 hashTask.addCompletedRange(new range_1.Range(hashTaskRange.end, hashTaskRange.start));
+                this.rateCounter.increment(this.rangeSize);
+                console.log(`${this.rateCounter.get()} hashes per second`);
                 if (!hashTask.answer) {
                     hashTask.answer = answer;
                     if (hashTask.answer && this.onHashTaskSolved) {

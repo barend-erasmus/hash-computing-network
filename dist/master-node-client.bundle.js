@@ -164,7 +164,7 @@ class HashTask {
 }
 exports.HashTask = HashTask;
 
-},{"./queued-range":12,"./range":13,"big-number":15}],10:[function(require,module,exports){
+},{"./queued-range":12,"./range":13,"big-number":16}],10:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -192,7 +192,7 @@ class MasterNodeClient {
         this.messageQueueClient = null;
         this.commandBuilder = new command_builder_1.CommandBuilder();
         this.id = uuid.v4();
-        this.masterNode = new master_node_1.MasterNode(5000, 10000, (answer, result) => this.onHashTaskSolved(answer, result), (hashTaskRange, workerProcess) => this.sendHashRangeTask(hashTaskRange, workerProcess), 10000);
+        this.masterNode = new master_node_1.MasterNode(5000, 7000, (answer, result) => this.onHashTaskSolved(answer, result), (hashTaskRange, workerProcess) => this.sendHashRangeTask(hashTaskRange, workerProcess), 10000);
         this.messageQueueClient = new wsmq_1.MessageQueueClient('wss://wsmq.openservices.co.za', (channel, data, messageQueueClient) => this.onMessage(channel, data, messageQueueClient), [
             `hash-computing-network-master-${this.id}`,
         ]);
@@ -229,12 +229,13 @@ class MasterNodeClient {
 }
 exports.MasterNodeClient = MasterNodeClient;
 
-},{"./command-builder":2,"./commands/compute":5,"./commands/compute-result":4,"./commands/join":6,"./commands/ping":7,"./master-node":11,"uuid":17,"wsmq":26}],11:[function(require,module,exports){
+},{"./command-builder":2,"./commands/compute":5,"./commands/compute-result":4,"./commands/join":6,"./commands/ping":7,"./master-node":11,"uuid":18,"wsmq":27}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const hash_task_1 = require("./hash-task");
 const hash_task_range_1 = require("./hash-task-range");
 const range_1 = require("./range");
+const rate_counter_1 = require("./rate-counter");
 const worker_process_1 = require("./worker-process");
 class MasterNode {
     constructor(rangeExpiry, rangeSize, onHashTaskSolved, sendHashTaskRange, workerProcessExpiry) {
@@ -243,15 +244,19 @@ class MasterNode {
         this.onHashTaskSolved = onHashTaskSolved;
         this.sendHashTaskRange = sendHashTaskRange;
         this.workerProcessExpiry = workerProcessExpiry;
-        this.workerProcesses = null;
         this.hashTasks = null;
-        this.workerProcesses = [];
+        this.rateCounter = null;
+        this.workerProcesses = null;
         this.hashTasks = [];
+        this.rateCounter = new rate_counter_1.RateCounter(10);
+        this.workerProcesses = [];
     }
     addCompletedHashTaskRange(answer, hashTaskRange) {
         for (const hashTask of this.hashTasks) {
             if (hashTask.hash.toLowerCase() === hashTaskRange.hash.toLowerCase()) {
                 hashTask.addCompletedRange(new range_1.Range(hashTaskRange.end, hashTaskRange.start));
+                this.rateCounter.increment(this.rangeSize);
+                console.log(`${this.rateCounter.get()} hashes per second`);
                 if (!hashTask.answer) {
                     hashTask.answer = answer;
                     if (hashTask.answer && this.onHashTaskSolved) {
@@ -301,7 +306,7 @@ class MasterNode {
 }
 exports.MasterNode = MasterNode;
 
-},{"./hash-task":9,"./hash-task-range":8,"./range":13,"./worker-process":14}],12:[function(require,module,exports){
+},{"./hash-task":9,"./hash-task-range":8,"./range":13,"./rate-counter":14,"./worker-process":15}],12:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const range_1 = require("./range");
@@ -327,6 +332,37 @@ exports.Range = Range;
 },{}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+class RateCounter {
+    constructor(windowSizeInSeconds) {
+        this.windowSizeInSeconds = windowSizeInSeconds;
+        this.currentTimestamp = null;
+        this.currentValue = null;
+        this.previousTimestamp = null;
+        this.previousValue = null;
+        this.currentTimestamp = new Date();
+        this.currentValue = 0;
+    }
+    get() {
+        if (!this.previousTimestamp) {
+            return null;
+        }
+        return this.previousValue / this.windowSizeInSeconds;
+    }
+    increment(value) {
+        if (this.currentTimestamp.getTime() + (this.windowSizeInSeconds * 1000) < new Date().getTime()) {
+            this.previousTimestamp = this.currentTimestamp;
+            this.previousValue = this.currentValue;
+            this.currentTimestamp = new Date();
+            this.currentValue = 0;
+        }
+        this.currentValue += value;
+    }
+}
+exports.RateCounter = RateCounter;
+
+},{}],15:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class WorkerProcess {
     constructor(id, joinCommandTimestamp) {
         this.id = id;
@@ -335,10 +371,10 @@ class WorkerProcess {
 }
 exports.WorkerProcess = WorkerProcess;
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = require('./lib/big-number');
 
-},{"./lib/big-number":16}],16:[function(require,module,exports){
+},{"./lib/big-number":17}],17:[function(require,module,exports){
 /*!
  * big-number.js -> Arithmetic operations on big integers
  * Pure javascript implementation, no external libraries needed
@@ -750,7 +786,7 @@ module.exports = require('./lib/big-number');
     }
 })();
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var v1 = require('./v1');
 var v4 = require('./v4');
 
@@ -760,7 +796,7 @@ uuid.v4 = v4;
 
 module.exports = uuid;
 
-},{"./v1":20,"./v4":21}],18:[function(require,module,exports){
+},{"./v1":21,"./v4":22}],19:[function(require,module,exports){
 /**
  * Convert array of 16 byte values to UUID string format of the form:
  * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
@@ -785,7 +821,7 @@ function bytesToUuid(buf, offset) {
 
 module.exports = bytesToUuid;
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 // Unique ID creation requires a high quality random # generator.  In the
 // browser this is a little complicated due to unknown quality of Math.random()
 // and inconsistent support for the `crypto` API.  We do the best we can via
@@ -819,7 +855,7 @@ if (getRandomValues) {
   };
 }
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var rng = require('./lib/rng');
 var bytesToUuid = require('./lib/bytesToUuid');
 
@@ -930,7 +966,7 @@ function v1(options, buf, offset) {
 
 module.exports = v1;
 
-},{"./lib/bytesToUuid":18,"./lib/rng":19}],21:[function(require,module,exports){
+},{"./lib/bytesToUuid":19,"./lib/rng":20}],22:[function(require,module,exports){
 var rng = require('./lib/rng');
 var bytesToUuid = require('./lib/bytesToUuid');
 
@@ -961,7 +997,7 @@ function v4(options, buf, offset) {
 
 module.exports = v4;
 
-},{"./lib/bytesToUuid":18,"./lib/rng":19}],22:[function(require,module,exports){
+},{"./lib/bytesToUuid":19,"./lib/rng":20}],23:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const publish_1 = require("../commands/publish");
@@ -982,7 +1018,7 @@ class CommandBuilder {
 }
 exports.CommandBuilder = CommandBuilder;
 
-},{"../commands/publish":24,"../commands/subscribe":25}],23:[function(require,module,exports){
+},{"../commands/publish":25,"../commands/subscribe":26}],24:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Command {
@@ -993,7 +1029,7 @@ class Command {
 }
 exports.Command = Command;
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const command_1 = require("./command");
@@ -1005,7 +1041,7 @@ class PublishCommand extends command_1.Command {
 }
 exports.PublishCommand = PublishCommand;
 
-},{"./command":23}],25:[function(require,module,exports){
+},{"./command":24}],26:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const command_1 = require("./command");
@@ -1016,7 +1052,7 @@ class SubscribeCommand extends command_1.Command {
 }
 exports.SubscribeCommand = SubscribeCommand;
 
-},{"./command":23}],26:[function(require,module,exports){
+},{"./command":24}],27:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -1029,7 +1065,7 @@ __export(require("./commands/subscribe"));
 __export(require("./models/message-queue-client-connection"));
 __export(require("./message-queue-client"));
 
-},{"./builders/command-builder":22,"./commands/command":23,"./commands/publish":24,"./commands/subscribe":25,"./message-queue-client":27,"./models/message-queue-client-connection":28}],27:[function(require,module,exports){
+},{"./builders/command-builder":23,"./commands/command":24,"./commands/publish":25,"./commands/subscribe":26,"./message-queue-client":28,"./models/message-queue-client-connection":29}],28:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const WebSocket = require("ws");
@@ -1087,7 +1123,7 @@ class MessageQueueClient {
 }
 exports.MessageQueueClient = MessageQueueClient;
 
-},{"./builders/command-builder":22,"./commands/publish":24,"./commands/subscribe":25,"ws":1}],28:[function(require,module,exports){
+},{"./builders/command-builder":23,"./commands/publish":25,"./commands/subscribe":26,"ws":1}],29:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class MessageQueueClientConnection {

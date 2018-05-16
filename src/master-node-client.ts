@@ -27,11 +27,11 @@ export class MasterNodeClient {
         this.id = uuid.v4();
 
         this.masterNode = new MasterNode(
-            5000,
-            10000,
+            5000, // Range Expiry in Milliseconds
+            7000, // Range Size
             (answer: string, result: string) => this.onHashTaskSolved(answer, result),
             (hashTaskRange: HashTaskRange, workerProcess: string) => this.sendHashRangeTask(hashTaskRange, workerProcess),
-            10000,
+            10000, // Worker Process Expiry
         );
 
         this.messageQueueClient = new MessageQueueClient(

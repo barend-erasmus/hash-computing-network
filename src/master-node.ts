@@ -1,13 +1,16 @@
 import { HashTask } from './hash-task';
 import { HashTaskRange } from './hash-task-range';
 import { Range } from './range';
+import { RateCounter } from './rate-counter';
 import { WorkerProcess } from './worker-process';
 
 export class MasterNode {
 
-    protected workerProcesses: WorkerProcess[] = null;
-
     protected hashTasks: HashTask[] = null;
+
+    protected rateCounter: RateCounter = null;
+
+    protected workerProcesses: WorkerProcess[] = null;
 
     constructor(
         protected rangeExpiry: number,
@@ -16,15 +19,21 @@ export class MasterNode {
         protected sendHashTaskRange: (hashTaskRange: HashTaskRange, workerProcessId: string) => void,
         protected workerProcessExpiry: number,
     ) {
-        this.workerProcesses = [];
-
         this.hashTasks = [];
+
+        this.rateCounter = new RateCounter(10);
+
+        this.workerProcesses = [];
     }
 
     public addCompletedHashTaskRange(answer: string, hashTaskRange: HashTaskRange): void {
         for (const hashTask of this.hashTasks) {
             if (hashTask.hash.toLowerCase() === hashTaskRange.hash.toLowerCase()) {
                 hashTask.addCompletedRange(new Range(hashTaskRange.end, hashTaskRange.start));
+
+                this.rateCounter.increment(this.rangeSize);
+
+                console.log(`${this.rateCounter.get()} hashes per second`);
 
                 if (!hashTask.answer) {
                     hashTask.answer = answer;

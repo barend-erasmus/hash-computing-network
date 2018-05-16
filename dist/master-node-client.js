@@ -25,7 +25,7 @@ class MasterNodeClient {
         this.messageQueueClient = null;
         this.commandBuilder = new command_builder_1.CommandBuilder();
         this.id = uuid.v4();
-        this.masterNode = new master_node_1.MasterNode(5000, 10000, (answer, result) => this.onHashTaskSolved(answer, result), (hashTaskRange, workerProcess) => this.sendHashRangeTask(hashTaskRange, workerProcess), 10000);
+        this.masterNode = new master_node_1.MasterNode(5000, 7000, (answer, result) => this.onHashTaskSolved(answer, result), (hashTaskRange, workerProcess) => this.sendHashRangeTask(hashTaskRange, workerProcess), 10000);
         this.messageQueueClient = new wsmq_1.MessageQueueClient('wss://wsmq.openservices.co.za', (channel, data, messageQueueClient) => this.onMessage(channel, data, messageQueueClient), [
             `hash-computing-network-master-${this.id}`,
         ]);
