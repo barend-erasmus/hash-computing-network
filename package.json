@@ -4,9 +4,9 @@
   "description": "",
   "main": "gulpfile.js",
   "scripts": {
-    "build": "gulp build & tsc",
+    "build": "gulp build & tsc & browserify ./dist/master-node-client.js --ignore ws --standalone App -o ./dist/master-node-client.bundle.js & browserify ./dist/slave-node-client.js --ignore ws --standalone App -o ./dist/slave-node-client.bundle.js",
     "lint": "tslint ./src/**/*.ts --fix --exclude ./src/**/*.d.ts",
-    "start": "npm run build & node ./dist/app.js --dev"
+    "start": "npm run build & http-server ./dist"
   },
   "repository": {
     "type": "git",

@@ -2,15 +2,33 @@
 <html lang="en">
 
 <head>
-    <title>Bootstrap Example</title>
+    <title>Hash Computing Network - Master Client</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
+    <div class="jumbotron">
+        <h1 class="display-4">Hash Computing Network</h1>
+        <p class="lead">
+            Solving hashes in a distributed manner.
+        </p>
+        <hr class="my-4">
+        <p>
+            Hash Computing Network was developed to demonstrate the common issues faced in distributed systems.
+        </p>
+        <p class="lead">
+            <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+        </p>
+    </div>
 
     <div class="container">
         <div class="row">
             <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <span id="numberOfWorkerProcesses">0</span> worker processes connected.
+                    </div>
+                </div>
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -19,10 +37,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>D077F244DEF8A70E5EA758BD8352FCD8</td>
-                            <td>cat</td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -30,12 +44,43 @@
                 <div class="form-group">
                     <label for="hash">Hash</label>
                     <input type="text" class="form-control" id="hash" placeholder="Enter hash">
-                    <button type="button" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-primary" onclick="onClickSubmit()">Submit</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="master-node-client.bundle.js"></script>
+    <script>
+        function onClickSubmit() {
+            let hash = document.querySelector('input#hash').value;
+
+            masterNodeClient.addHashTask(hash);
+
+            document.querySelector('table tbody').innerHTML += `
+                <tr id="${hash}" class="text-warning">
+                    <td>${hash}</td>
+                    <td></td>
+                </tr>
+            `;
+
+            document.querySelector('input#hash').value = null;
+        }
+
+        const masterNodeClient = new App.MasterNodeClient(function (answer, result) {
+            document.querySelector(`table tbody tr#${result} td:nth-child(2)`).innerHTML = answer;
+
+            document.querySelector(`table tbody tr#${result}`).classList.remove('text-warning');
+            document.querySelector(`table tbody tr#${result}`).classList.add('text-success');
+        });
+
+        masterNodeClient.start();
+
+        setInterval(function () {
+            document.querySelector('#numberOfWorkerProcesses').innerHTML = masterNodeClient.getNumberOfWorkerProcesses();
+        }, 2000);
+
+    </script>
 </body>
 
 </html>

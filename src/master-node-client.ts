@@ -19,7 +19,9 @@ export class MasterNodeClient {
 
     protected messageQueueClient: MessageQueueClient = null;
 
-    constructor() {
+    constructor(
+        protected onHashTaskSolved: (answer: string, result: string) => void,
+    ) {
         this.commandBuilder = new CommandBuilder();
 
         this.id = uuid.v4();
@@ -40,6 +42,14 @@ export class MasterNodeClient {
             ]);
     }
 
+    public addHashTask(hash: string): void {
+        this.masterNode.addHashTask(hash);
+    }
+
+    public getNumberOfWorkerProcesses(): number {
+        return this.masterNode.getNumberOfWorkerProcessess();
+    }
+
     public async start(): Promise<void> {
         await this.messageQueueClient.connect();
 
@@ -51,10 +61,6 @@ export class MasterNodeClient {
 
     protected sendHashRangeTask(hashTaskRange: HashTaskRange, workerProcess: string): void {
         this.messageQueueClient.send(`hash-computing-network-slave-${workerProcess}`, new ComputeCommand(hashTaskRange, this.id));
-    }
-
-    protected onHashTaskSolved(answer: string, result: string): void {
-        console.log(`Solved '${result}': '${answer}'`);
     }
 
     protected onMessage(channel: string, data: any, messageQueueClient: MessageQueueClient): void {
@@ -74,7 +80,3 @@ export class MasterNodeClient {
     }
 
 }
-
-const masterNodeClient: MasterNodeClient = new MasterNodeClient();
-
-masterNodeClient.start();

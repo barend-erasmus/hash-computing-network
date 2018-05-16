@@ -18,10 +18,7 @@ export class MasterNode {
     ) {
         this.workerProcesses = [];
 
-        this.hashTasks = [
-            new HashTask('D077F244DEF8A70E5EA758BD8352FCD8', this.rangeExpiry, this.rangeSize), // 'cat'
-            new HashTask('06D80EB0C50B49A509B49F2424E8C805', this.rangeExpiry, this.rangeSize), // 'dog'
-        ];
+        this.hashTasks = [];
     }
 
     public addCompletedHashTaskRange(answer: string, hashTaskRange: HashTaskRange): void {
@@ -33,11 +30,17 @@ export class MasterNode {
                     hashTask.answer = answer;
 
                     if (hashTask.answer && this.onHashTaskSolved) {
-                        this.onHashTaskSolved(hashTask.answer, hashTask.hash);
+                        if (this.sendHashTaskRange) {
+                            this.onHashTaskSolved(hashTask.answer, hashTask.hash);
+                        }
                     }
                 }
             }
         }
+    }
+
+    public addHashTask(hash: string): void {
+        this.hashTasks.push(new HashTask(hash, this.rangeExpiry, this.rangeSize));
     }
 
     public addWorkerProcess(workerProcessId: string): boolean {
@@ -55,6 +58,10 @@ export class MasterNode {
 
     }
 
+    public getNumberOfWorkerProcessess(): number {
+        return this.workerProcesses.length;
+    }
+
     public tick(): void {
         this.workerProcesses = this.workerProcesses.filter((workerProcess: WorkerProcess) => workerProcess.joinCommandTimestamp.getTime() > new Date().getTime() - this.workerProcessExpiry);
 
@@ -62,7 +69,9 @@ export class MasterNode {
             const hashTaskRange: HashTaskRange = this.getNextHashTaskRange();
 
             if (hashTaskRange && this.sendHashTaskRange) {
-                this.sendHashTaskRange(hashTaskRange, workerProcess.id);
+                if (this.sendHashTaskRange) {
+                    this.sendHashTaskRange(hashTaskRange, workerProcess.id);
+                }
             }
         }
     }
