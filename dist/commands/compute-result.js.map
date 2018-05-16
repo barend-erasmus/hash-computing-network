@@ -1,0 +1,1 @@
+{"version":3,"file":"compute-result.js","sourceRoot":"","sources":["../../src/commands/compute-result.ts"],"names":[],"mappings":";;AACA,uCAAoC;AAEpC,0BAAkC,SAAQ,iBAAO;IAE7C,YACW,cAAsB,EACtB,aAA4B;QAEnC,KAAK,CAAC,gBAAgB,CAAC,CAAC;QAHjB,mBAAc,GAAd,cAAc,CAAQ;QACtB,kBAAa,GAAb,aAAa,CAAe;IAGvC,CAAC;CAEJ;AATD,oDASC"}

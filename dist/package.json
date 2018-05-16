@@ -1,0 +1,33 @@
+{
+  "name": "hash-computing-network",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "build": "gulp build & tsc & browserify ./dist/master-node-client.js --ignore ws --standalone App -o ./dist/master-node-client.bundle.js & browserify ./dist/slave-node-client.js --ignore ws --standalone App -o ./dist/slave-node-client.bundle.js",
+    "lint": "tslint ./src/**/*.ts --fix --exclude ./src/**/*.d.ts",
+    "start": "npm run build & http-server ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barend-erasmus/hash-computing-network.git"
+  },
+  "author": "Barend Erasmus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/barend-erasmus/hash-computing-network/issues"
+  },
+  "homepage": "https://github.com/barend-erasmus/hash-computing-network#readme",
+  "devDependencies": {
+    "@types/node": "^10.0.9",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.4.0",
+    "run-sequence": "^2.2.1",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "big-number": "^0.4.0",
+    "majuro": "^1.2.2",
+    "wsmq": "0.0.5"
+  }
+}
