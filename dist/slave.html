@@ -7,7 +7,9 @@
 </head>
 
 <body>
-    <script src="slave-node-client.bundle.js"></script>
+    <script>
+        let worker = new Worker("slave-node-client.bundle.js");
+    </script>
 </body>
 
 </html>
