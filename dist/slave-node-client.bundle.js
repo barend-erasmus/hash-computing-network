@@ -14638,7 +14638,7 @@ module.exports={
   "_resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz",
   "_shasum": "cac9af8762c85836187003c8dfe193e5e2eae5df",
   "_spec": "elliptic@^6.0.0",
-  "_where": "C:\\Users\\Barend.Erasmus.EURO_NT\\AppData\\Roaming\\npm\\node_modules\\browserify\\node_modules\\browserify-sign",
+  "_where": "C:\\Users\\Barend\\AppData\\Roaming\\npm\\node_modules\\browserify\\node_modules\\browserify-sign",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -30596,7 +30596,7 @@ __export(require("./message-queue-client"));
 },{"./builders/command-builder":232,"./commands/command":233,"./commands/publish":234,"./commands/subscribe":235,"./message-queue-client":237,"./models/message-queue-client-connection":238}],237:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const WS = require("ws");
+const WebSocket = require("ws");
 const command_builder_1 = require("./builders/command-builder");
 const publish_1 = require("./commands/publish");
 const subscribe_1 = require("./commands/subscribe");
@@ -30609,7 +30609,12 @@ class MessageQueueClient {
     }
     connect() {
         return new Promise((resolve, reject) => {
-            this.socket = typeof (WebSocket) === 'undefined' ? new WS(this.host) : new WebSocket(this.host);
+            if (typeof (WebSocket) === 'function') {
+                this.socket = new WebSocket(this.host);
+            }
+            if (typeof (WebSocket) === 'object') {
+                this.socket = new window.WebSocket(this.host);
+            }
             this.socket.onclose = (closeEvent) => this.onClose(closeEvent);
             this.socket.onmessage = (event) => this.onMessage(event);
             this.socket.onopen = (openEvent) => this.onOpen(openEvent, resolve);
