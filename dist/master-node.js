@@ -23,8 +23,12 @@ class MasterNode {
         for (const hashTask of this.hashTasks) {
             if (hashTask.hash.toLowerCase() === hashTaskRange.hash.toLowerCase()) {
                 hashTask.addCompletedRange(new range_1.Range(hashTaskRange.end, hashTaskRange.start));
+                const previousRate = this.rateCounter.get();
                 this.rateCounter.increment(this.rangeSize);
-                console.log(`${this.rateCounter.get()} hashes per second`);
+                const currentRate = this.rateCounter.get();
+                if (currentRate !== previousRate) {
+                    console.log(`${this.rateCounter.get()} hashes per second`);
+                }
                 if (!hashTask.answer) {
                     hashTask.answer = answer;
                     if (hashTask.answer && this.onHashTaskSolved) {

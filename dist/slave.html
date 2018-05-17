@@ -7,13 +7,22 @@
 </head>
 
 <body>
+    <div class="jumbotron">
+        <h1 class="display-4">Hash Computing Network</h1>
+        <p class="lead">
+            Distributed system in a browser.
+        </p>
+        <hr class="my-4">
+        <p class="lead">
+            <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+        </p>
+    </div>
     <!-- <script src="slave-node-client.bundle.js"></script> -->
     <!-- <script src="https://barend-erasmus.github.io/hash-computing-network/dist/slave-node-client.bundle.js"></script> -->
 
     <script>
-        for (let count = 0; count < Math.floor(navigator.hardwareConcurrency / 2); count ++) {
+        for (let count = 0; count < Math.floor(navigator.hardwareConcurrency / 2); count++) {
             let worker = new Worker('slave-node-client.bundle.js');
-            console.log(count);
         }
     </script>
 </body>

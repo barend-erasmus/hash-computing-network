@@ -10,12 +10,9 @@
     <div class="jumbotron">
         <h1 class="display-4">Hash Computing Network</h1>
         <p class="lead">
-            Solving hashes in a distributed manner.
+            Distributed system in a browser.
         </p>
         <hr class="my-4">
-        <p>
-            Hash Computing Network was developed to demonstrate the common issues faced in distributed systems.
-        </p>
         <p class="lead">
             <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
         </p>
@@ -79,6 +76,19 @@
 
         setInterval(function () {
             document.querySelector('#numberOfWorkerProcesses').innerHTML = masterNodeClient.getNumberOfWorkerProcesses();
+        }, 2000);
+
+        setTimeout(function () {
+            let hash = 'FE01CE2A7FBAC8FAFAED7C982A04E229'; // demo => MD5
+
+            masterNodeClient.addHashTask(hash);
+
+            document.querySelector('table tbody').innerHTML += `
+                <tr id="${hash}" class="text-warning">
+                    <td>${hash}</td>
+                    <td></td>
+                </tr>
+            `;
         }, 2000);
 
     </script>

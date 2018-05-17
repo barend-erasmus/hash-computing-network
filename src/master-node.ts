@@ -31,9 +31,13 @@ export class MasterNode {
             if (hashTask.hash.toLowerCase() === hashTaskRange.hash.toLowerCase()) {
                 hashTask.addCompletedRange(new Range(hashTaskRange.end, hashTaskRange.start));
 
+                const previousRate: number = this.rateCounter.get();
                 this.rateCounter.increment(this.rangeSize);
+                const currentRate: number = this.rateCounter.get();
 
-                console.log(`${this.rateCounter.get()} hashes per second`);
+                if (currentRate !== previousRate) {
+                    console.log(`${this.rateCounter.get()} hashes per second`);
+                }
 
                 if (!hashTask.answer) {
                     hashTask.answer = answer;
