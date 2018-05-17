@@ -56,7 +56,7 @@ export class MasterNodeClient {
         setInterval(() => {
             this.messageQueueClient.send('hash-computing-network', new PingCommand(this.id));
             this.masterNode.tick();
-        }, 5000);
+        }, 7000);
     }
 
     protected sendHashRangeTask(hashTaskRange: HashTaskRange, workerProcess: string): void {

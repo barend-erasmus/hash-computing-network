@@ -209,7 +209,7 @@ class MasterNodeClient {
             setInterval(() => {
                 this.messageQueueClient.send('hash-computing-network', new ping_1.PingCommand(this.id));
                 this.masterNode.tick();
-            }, 5000);
+            }, 7000);
         });
     }
     sendHashRangeTask(hashTaskRange, workerProcess) {
