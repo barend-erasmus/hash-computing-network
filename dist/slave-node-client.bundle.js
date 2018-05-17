@@ -30596,7 +30596,7 @@ __export(require("./message-queue-client"));
 },{"./builders/command-builder":232,"./commands/command":233,"./commands/publish":234,"./commands/subscribe":235,"./message-queue-client":237,"./models/message-queue-client-connection":238}],237:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const WebSocket = require("ws");
+const WS = require("ws");
 const command_builder_1 = require("./builders/command-builder");
 const publish_1 = require("./commands/publish");
 const subscribe_1 = require("./commands/subscribe");
@@ -30609,12 +30609,7 @@ class MessageQueueClient {
     }
     connect() {
         return new Promise((resolve, reject) => {
-            if (typeof (WebSocket) === 'function') {
-                this.socket = new WebSocket(this.host);
-            }
-            if (typeof (WebSocket) === 'object') {
-                this.socket = new window.WebSocket(this.host);
-            }
+            this.socket = typeof (WebSocket) === 'undefined' ? new WS(this.host) : new WebSocket(this.host);
             this.socket.onclose = (closeEvent) => this.onClose(closeEvent);
             this.socket.onmessage = (event) => this.onMessage(event);
             this.socket.onopen = (openEvent) => this.onOpen(openEvent, resolve);

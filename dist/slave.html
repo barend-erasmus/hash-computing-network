@@ -7,8 +7,15 @@
 </head>
 
 <body>
-    <script src="slave-node-client.bundle.js"></script>
+    <!-- <script src="slave-node-client.bundle.js"></script> -->
     <!-- <script src="https://barend-erasmus.github.io/hash-computing-network/dist/slave-node-client.bundle.js"></script> -->
+
+    <script>
+        for (let count = 0; count < Math.floor(navigator.hardwareConcurrency / 2); count ++) {
+            let worker = new Worker('slave-node-client.bundle.js');
+            console.log(count);
+        }
+    </script>
 </body>
 
 </html>
